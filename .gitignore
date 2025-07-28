@@ -1,0 +1,21 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+
+# Environment variables
+.env
+
+# IDE directories
+.idea/
+.vscode/
+
+# Docker data
+postgres_data/
+
+# Django static files
+staticfiles/

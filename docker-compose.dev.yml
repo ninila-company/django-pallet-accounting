@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+  web:
+    build: .
+    volumes:
+      - .:/app  # Монтируем код для разработки
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"  # Пробрасываем порт напрямую
+    env_file:
+      - ./.env
+    environment:
+      - DEBUG=1
+    depends_on:
+      - db
+    entrypoint: /entrypoint-dev.sh
+
+volumes:
+  postgres_data:
+  static_volume: 

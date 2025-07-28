@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.idea/
+.vscode/
+.env
+docker-compose*.yml
+*.sh
+postgres_data/
