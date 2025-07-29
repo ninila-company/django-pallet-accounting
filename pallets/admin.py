@@ -23,23 +23,18 @@ class PaletAdmin(admin.ModelAdmin):
     list_filter = ("pallets_from_the_date", "pallet_pick_up_date", "receipt_mark")
     search_fields = ("number", "products_quantity__product__product_name")
     inlines = [Poducts_in_palet_quantityInline]
-    # actions = ["print_selected_palets"]
+    actions = ["print_selected_palets"]
 
-    def get_products_list(self, obj):
-        products = []
-        for product_quantity in obj.products_quantity.all():
-            products.append(
-                f"{product_quantity.product.product_name} - {product_quantity.quantity} шт."
-            )
-        return " /// ".join(products)
-
-    get_products_list.short_description = "Продукты"
+    def get_queryset(self, request):
+        # Оптимизация: предварительно загружаем связанные продукты, чтобы избежать N+1 запросов
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related("products_quantity__product")
 
     def print_selected_palets(self, request, queryset):
         try:
-            palets = queryset
+            palets = queryset  # Благодаря get_queryset, здесь уже будут предзагружены продукты
             html_string = render_to_string(
-                "palets/print_selected_palets.html", {"palets": palets}
+                "pallets/print_selected_palets.html", {"palets": palets}
             )
             pdf_file = HTML(string=html_string).write_pdf()
 
@@ -54,7 +49,7 @@ class PaletAdmin(admin.ModelAdmin):
             )
             return
 
-    print_selected_palets.short_description = "Печать выбранных палет"
+    print_selected_palets.short_description = "Печать выбранных паллет"
 
 
 @admin.register(Poducts_in_palet)

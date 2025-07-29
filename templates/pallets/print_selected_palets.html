@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Выбранные палеты</title>
+    <style>
+        /* Стили для форматирования PDF */
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #333;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Выбранные палеты</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Номер палеты</th>
+                <th>Продукты</th>
+                <th>Дата поступления</th>
+                <th>Дата получения</th>
+                <th>Отметка о заказе</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for palet in palets %}
+            <tr>
+                <td>{{ palet.number }}</td>
+                <td>
+                    {% for product_quantity in palet.products_quantity.all %}
+                    {{ product_quantity.product.product_name }} - {{ product_quantity.quantity }} шт.<br>
+                    {% endfor %}
+                </td>
+                <td>{{ palet.pallets_from_the_date }}</td>
+                <td>{{ palet.pallet_pick_up_date|default:"-" }}</td>
+                <td>{{ palet.receipt_mark|yesno:"Да,Нет" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
