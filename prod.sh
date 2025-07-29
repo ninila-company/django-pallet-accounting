@@ -6,4 +6,4 @@ echo "Starting production environment..."
 docker compose -f docker-compose.dev.yml down
 
 # Запустим production окружение
-docker compose up -d 
+docker compose up -d --build

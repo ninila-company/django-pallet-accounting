@@ -7,11 +7,8 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from dotenv import load_dotenv
 
 from .models import Palet
-
-load_dotenv()
 
 
 def palet_list(request):

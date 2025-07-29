@@ -1,7 +1,7 @@
 from django.contrib import admin
-# from django.http import HttpResponse
-# from django.template.loader import render_to_string
-# from weasyprint import HTML
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 from .models import Palet, Poducts_in_palet, Poducts_in_palet_quantity
 
@@ -34,28 +34,27 @@ class PaletAdmin(admin.ModelAdmin):
         return " /// ".join(products)
 
     get_products_list.short_description = "Продукты"
-    get_products_list.allow_tags = True
 
-    # def print_selected_palets(self, request, queryset):
-    #     try:
-    #         palets = queryset
-    #         html_string = render_to_string(
-    #             "palets/print_selected_palets.html", {"palets": palets}
-    #         )
-    #         pdf_file = HTML(string=html_string).write_pdf()
+    def print_selected_palets(self, request, queryset):
+        try:
+            palets = queryset
+            html_string = render_to_string(
+                "palets/print_selected_palets.html", {"palets": palets}
+            )
+            pdf_file = HTML(string=html_string).write_pdf()
 
-    #         response = HttpResponse(pdf_file, content_type="application/pdf")
-    #         response["Content-Disposition"] = (
-    #             'attachment; filename="selected_palets.pdf"'
-    #         )
-    #         return response
-    #     except Exception as e:
-    #         self.message_user(
-    #             request, f"Ошибка при генерации PDF: {str(e)}", level="error"
-    #         )
-    #         return
+            response = HttpResponse(pdf_file, content_type="application/pdf")
+            response["Content-Disposition"] = (
+                'attachment; filename="selected_palets.pdf"'
+            )
+            return response
+        except Exception as e:
+            self.message_user(
+                request, f"Ошибка при генерации PDF: {str(e)}", level="error"
+            )
+            return
 
-    # print_selected_palets.short_description = "Печать выбранных палет"
+    print_selected_palets.short_description = "Печать выбранных палет"
 
 
 @admin.register(Poducts_in_palet)

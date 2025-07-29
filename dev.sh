@@ -11,4 +11,4 @@ docker compose up -d db
 
 # Запустим Django в режиме разработки
 echo "Starting Django development server..."
-docker compose -f docker-compose.dev.yml up web
+docker compose -f docker-compose.dev.yml up --build web
