@@ -39,14 +39,10 @@ class PaletAdmin(admin.ModelAdmin):
             pdf_file = HTML(string=html_string).write_pdf()
 
             response = HttpResponse(pdf_file, content_type="application/pdf")
-            response["Content-Disposition"] = (
-                'attachment; filename="selected_palets.pdf"'
-            )
+            response["Content-Disposition"] = 'attachment; filename="selected_palets.pdf"'
             return response
         except Exception as e:
-            self.message_user(
-                request, f"Ошибка при генерации PDF: {str(e)}", level="error"
-            )
+            self.message_user(request, f"Ошибка при генерации PDF: {str(e)}", level="error")
             return
 
     print_selected_palets.short_description = "Печать выбранных паллет"

@@ -26,15 +26,9 @@ def palet_list(request):
         palets_qs = palets_qs.filter(q_objects)
 
     # Предварительно загружаем связанные данные, чтобы избежать N+1 запросов в шаблоне
-    palets = (
-        palets_qs.order_by("number")
-        .distinct()
-        .prefetch_related("products_quantity__product")
-    )
+    palets = palets_qs.order_by("number").distinct().prefetch_related("products_quantity__product")
 
-    return render(
-        request, "pallets/palet_list.html", {"palets": palets, "search": search_query}
-    )
+    return render(request, "pallets/palet_list.html", {"palets": palets, "search": search_query})
 
 
 def send_palet(request, palet_id):
@@ -81,9 +75,7 @@ def send_palet(request, palet_id):
                 palet.receipt_mark = True
                 palet.save()
             except requests.exceptions.HTTPError as e:
-                messages.error(
-                    request, f"Ошибка при заказе паллеты №{palet.number}: {str(e)}"
-                )
+                messages.error(request, f"Ошибка при заказе паллеты №{palet.number}: {str(e)}")
 
             return HttpResponseRedirect(reverse("pallets:palet_list"))
 

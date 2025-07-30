@@ -16,9 +16,7 @@ class Poducts_in_palet(models.Model):
 class Palet(models.Model):
     number = models.IntegerField(verbose_name="Номер палеты")
     pallets_from_the_date = models.DateField(verbose_name="Дата поступления")
-    pallet_pick_up_date = models.DateField(
-        blank=True, null=True, verbose_name="Дата получения"
-    )
+    pallet_pick_up_date = models.DateField(blank=True, null=True, verbose_name="Дата получения")
     receipt_mark = models.BooleanField(default=False, verbose_name="Отметка о заказе")
 
     def __str__(self):
@@ -46,15 +44,11 @@ class Poducts_in_palet_quantity(models.Model):
         related_name="products_quantity",
         verbose_name="Палета",
     )
-    product = models.ForeignKey(
-        Poducts_in_palet, on_delete=models.CASCADE, verbose_name="Продукт"
-    )
+    product = models.ForeignKey(Poducts_in_palet, on_delete=models.CASCADE, verbose_name="Продукт")
     quantity = models.PositiveIntegerField(default=1, verbose_name="Количество")
 
     def __str__(self):
         return f"{self.product.product_name} - {self.quantity} шт."
-
     class Meta:
         verbose_name = "Продукт в палете с количеством"
         verbose_name_plural = "Продукты в палете с количеством"
-

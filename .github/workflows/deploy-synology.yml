@@ -1,0 +1,52 @@
+name: Deploy to Synology
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker images
+      run: |
+        docker compose build
+        docker tag django-pallet-accounting_web ${{ secrets.DOCKERHUB_USERNAME }}/django-pallet-accounting_web:latest
+        docker tag django-pallet-accounting_nginx ${{ secrets.DOCKERHUB_USERNAME }}/django-pallet-accounting_nginx:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/django-pallet-accounting_web:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/django-pallet-accounting_nginx:latest
+        echo "✅ Docker images pushed successfully"
+
+    - name: Deploy to Synology
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SYNOLOGY_HOST }}
+        username: ${{ secrets.SYNOLOGY_USERNAME }}
+        password: ${{ secrets.SYNOLOGY_PASSWORD }}
+        port: ${{ secrets.SYNOLOGY_PORT }}
+        script: |
+          echo "🚀 Starting deployment on Synology..."
+          cd /volume1/docker/django-pallet-accounting
+          echo "📥 Pulling latest images..."
+          docker compose pull
+          echo "🛑 Stopping current containers..."
+          docker compose down
+          echo "▶️ Starting new containers..."
+          docker compose up -d
+          echo "🧹 Cleaning up unused images..."
+          docker system prune -f
+          echo "✅ Deployment completed successfully!" 
