@@ -47,7 +47,8 @@ class Migration(migrations.Migration):
         ),
         # Этот шаг заполнит поле search_vector для уже существующих записей.
         migrations.RunSQL(
-            "UPDATE pallets_poducts_in_palet SET search_vector = to_tsvector('russian', product_name);",
+            "UPDATE pallets_poducts_in_palet SET search_vector = to_tsvector('russian'," \
+            "product_name);",
             "UPDATE pallets_poducts_in_palet SET search_vector = NULL;",
         ),
         # Этот шаг добавит триггер в базу данных.
