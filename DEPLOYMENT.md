@@ -73,7 +73,10 @@ cd /volume1/docker/django-pallet-accounting
 # Django settings
 SECRET_KEY=your-very-secure-secret-key-here
 DEBUG=False
-ALLOWED_HOSTS=your-synology-ip,your-domain.com,localhost,127.0.0.1
+DJANGO_ALLOWED_HOSTS=your-synology-ip,your-domain.com,localhost,127.0.0.1
+# CSRF Trusted Origins (обязательно укажите схему http/https и порт)
+# Например: http://192.168.1.100:8010
+DJANGO_CSRF_TRUSTED_ORIGINS=http://your-synology-ip:port
 
 # Database settings
 POSTGRES_DB=pallet_accounting_prod
@@ -201,4 +204,4 @@ git commit -m "Update application"
 git push origin main
 ```
 
-GitHub Actions автоматически развернет обновления на Synology. 
+GitHub Actions автоматически развернет обновления на Synology.

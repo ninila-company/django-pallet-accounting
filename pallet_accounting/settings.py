@@ -12,8 +12,18 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = int(os.getenv("DEBUG", default=0))
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1 localhost").split(" ")
+# Получаем хосты из переменной окружения. Если она пустая, будет пустой список.
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
 
+# Если включен режим отладки, всегда добавляем локальные хосты.
+if DEBUG:
+    ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
+
+# Добавим доверенные источники для CSRF. Укажите схему, хост и порт.
+# Например: http://ip:port
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "DJANGO_CSRF_TRUSTED_ORIGINS", "http://127.0.0.1, http://localhost"
+).split(",")
 
 # Application definition
 

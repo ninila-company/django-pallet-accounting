@@ -1,9 +1,13 @@
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 from django.utils.html import format_html
 
 
 class Poducts_in_palet(models.Model):
     product_name = models.CharField(max_length=255, verbose_name="Товар")
+    # Поле для полнотекстового поиска. null=True, чтобы можно было добавить в существующую таблицу.
+    search_vector = SearchVectorField(null=True, editable=False)
 
     def __str__(self):
         return self.product_name
@@ -11,6 +15,10 @@ class Poducts_in_palet(models.Model):
     class Meta:
         verbose_name = "Продукт в палете"
         verbose_name_plural = "Продукты в палете"
+        # Добавляем GiN-индекс для поля search_vector
+        indexes = [
+            GinIndex(fields=["search_vector"]),
+        ]
 
 
 class Palet(models.Model):

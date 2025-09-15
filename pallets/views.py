@@ -2,13 +2,15 @@ import os
 import time
 
 import requests
-from django.contrib import messages
-from django.db.models import Q
+from django.contrib import messages, postgres
+
+# from django.db.models import Q
+from django.db.models import Prefetch
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from .models import Palet
+from .models import Palet, Poducts_in_palet_quantity
 
 
 def palet_list(request):
@@ -17,16 +19,39 @@ def palet_list(request):
     # Начинаем с базового запроса
     palets_qs = Palet.objects.filter(receipt_mark=False)
 
-    if search_query:
-        words = search_query.split()
-        q_objects = Q()
-        for word in words:
-            # Логика И для слов
-            q_objects &= Q(products_quantity__product__product_name__icontains=word)
-        palets_qs = palets_qs.filter(q_objects)
+    # Определяем базовый prefetch для продуктов
+    prefetch_products = Prefetch(
+        "products_quantity",
+        queryset=Poducts_in_palet_quantity.objects.select_related("product"),
+    )
 
-    # Предварительно загружаем связанные данные, чтобы избежать N+1 запросов в шаблоне
-    palets = palets_qs.order_by("number").distinct().prefetch_related("products_quantity__product")
+    if search_query:
+        # Используем полнотекстовый поиск.
+        # search_type='phrase' ищет точную фразу, решая проблему "белый" vs "супербелый".
+        # config='russian' указывает, что мы ищем на русском языке.
+        query = postgres.search.SearchQuery(search_query, search_type="phrase", config="russian")
+
+        # Фильтруем палеты, как и раньше
+        palets_qs = palets_qs.filter(products_quantity__product__search_vector=query)
+
+        # Создаем аннотацию для подсветки
+        headline = postgres.search.SearchHeadline(
+            "product__product_name",  # Поле, которое нужно подсветить
+            query,
+            start_sel="<mark>",  # Начальный тег для подсветки
+            stop_sel="</mark>",  # Конечный тег
+        )
+
+        # Создаем кастомный Prefetch, который добавляет аннотацию с подсветкой
+        prefetch_products = Prefetch(
+            "products_quantity",
+            queryset=Poducts_in_palet_quantity.objects.select_related("product").annotate(
+                highlighted_name=headline
+            ),
+        )
+
+    # Предварительно загружаем связанные данные, используя наш prefetch
+    palets = palets_qs.order_by("number").distinct().prefetch_related(prefetch_products)
 
     return render(request, "pallets/palet_list.html", {"palets": palets, "search": search_query})
 
