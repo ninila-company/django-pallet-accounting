@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -67,11 +68,12 @@ def send_palet(request, palet_id):
                 products_list.append(
                     f"{product_quantity.product.product_name} - {product_quantity.quantity} шт."
                 )
-            products_text = "\n".join(products_list)
-
+            # Формируем HTML-версию с правильными тегами
+            products_html = "<br>".join(products_list)
+            
             payload = {
                 "text": f"Паллета № {palet.number}",
-                "textHtml": f"<p>Паллета {palet.number}\nСодержимое:\n{products_text}</p>",
+                "textHtml": f"<p>Паллета {palet.number}<br>Содержимое:<br>{products_html}</p>",
                 "label": f"Паллета № {palet.number} {time.strftime('%d.%m.%Y %H:%M')}",
             }
 
