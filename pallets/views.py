@@ -1,4 +1,3 @@
-import json
 import os
 import time
 
@@ -70,7 +69,7 @@ def send_palet(request, palet_id):
                 )
             # Формируем HTML-версию с правильными тегами
             products_html = "<br>".join(products_list)
-            
+
             payload = {
                 "text": f"Паллета № {palet.number}",
                 "textHtml": f"<p>Паллета {palet.number}<br>Содержимое:<br>{products_html}</p>",
