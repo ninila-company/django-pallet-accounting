@@ -67,8 +67,10 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 20%;">Номер палеты</th>
-                <th style="width: 25%;">Дата поступления</th>
+                <th style="width: 10%;">Номер палеты</th>
+                <th style="width: 13%;">Дата поступления</th>
+                <th style="width: 13%;">Дата получения</th>
+                <th style="width: 10%;">Отметка о заказе</th>
                 <th>Состав</th>
             </tr>
         </thead>
@@ -77,6 +79,8 @@
             <tr>
                 <td><strong>{{ palet.number }}</strong></td>
                 <td>{{ palet.pallets_from_the_date|date:"d.m.Y" }}</td>
+                <td>{{ palet.pallet_pick_up_date|date:"d.m.Y"|default:"Не указана" }}</td>
+                <td>{% if palet.receipt_mark %}Да{% else %}Нет{% endif %}</td>
                 <td>
                     <ul>
                         {% for item in palet.products_quantity.all %}
