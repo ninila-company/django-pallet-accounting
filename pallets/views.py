@@ -6,9 +6,11 @@ from django.contrib import messages, postgres
 
 # from django.db.models import Q
 from django.db.models import Prefetch
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import Palet, Poducts_in_palet_quantity
 
@@ -53,7 +55,14 @@ def palet_list(request):
     # Предварительно загружаем связанные данные, используя наш prefetch
     palets = palets_qs.order_by("number").distinct().prefetch_related(prefetch_products)
 
-    return render(request, "pallets/palet_list.html", {"palets": palets, "search": search_query})
+    # Получаем ID паллет для кнопки печати
+    palet_ids = list(palets.values_list("id", flat=True))
+
+    return render(
+        request,
+        "pallets/palet_list.html",
+        {"palets": palets, "search": search_query, "palet_ids": palet_ids},
+    )
 
 
 def send_palet(request, palet_id):
@@ -108,3 +117,33 @@ def send_palet(request, palet_id):
         except Exception as e:
             messages.error(request, f"Произошла ошибка: {str(e)}")
             return HttpResponseRedirect(reverse("pallets:palet_list"))
+
+
+def print_palets_pdf(request):
+    if request.method == "POST":
+        palet_ids = request.POST.getlist("palet_ids")
+        if not palet_ids:
+            messages.warning(request, "Нет паллет для печати.")
+            return HttpResponseRedirect(reverse("pallets:palet_list"))
+
+        try:
+            from weasyprint import HTML
+
+            palets = Palet.objects.filter(id__in=palet_ids).prefetch_related(
+                "products_quantity__product"
+            )
+            context = {
+                "palets": palets,
+                "generation_time": timezone.now(),
+            }
+            html_string = render_to_string("pallets/print_selected_palets.html", context)
+
+            pdf_file = HTML(string=html_string).write_pdf()
+
+            response = HttpResponse(pdf_file, content_type="application/pdf")
+            response["Content-Disposition"] = 'attachment; filename="pallets.pdf"'
+            return response
+        except Exception as e:
+            messages.error(request, f"Ошибка при генерации PDF: {str(e)}")
+
+    return HttpResponseRedirect(reverse("pallets:palet_list"))

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.utils import timezone
 from weasyprint import HTML
 
 from .models import Palet, Poducts_in_palet, Poducts_in_palet_quantity
@@ -33,9 +34,14 @@ class PaletAdmin(admin.ModelAdmin):
     def print_selected_palets(self, request, queryset):
         try:
             palets = queryset  # Благодаря get_queryset, здесь уже будут предзагружены продукты
-            html_string = render_to_string(
-                "pallets/print_selected_palets.html", {"palets": palets}
-            )
+
+            context = {
+                "palets": palets,
+                "generation_time": timezone.now(),
+            }
+
+            html_string = render_to_string("pallets/print_selected_palets.html", context)
+
             pdf_file = HTML(string=html_string).write_pdf()
 
             response = HttpResponse(pdf_file, content_type="application/pdf")

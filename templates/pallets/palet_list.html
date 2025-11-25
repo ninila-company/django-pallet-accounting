@@ -3,11 +3,11 @@
 {% block title %}Список паллетов на складе{% endblock %}
 
 {% block content %}
-<div class="row mb-3 align-items-center">
-    <div class="col-md-8">
+<div class="row mb-3 align-items-end">
+    <div class="col-md-6">
         <h1>Паллеты на СВХ</h1>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form method="get" action="{% url 'pallets:palet_list' %}">
             <div class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Поиск по продуктам..."
@@ -19,6 +19,17 @@
 </div>
 
 {% if palets %}
+<div class="row mb-3">
+    <div class="col-12">
+        <form action="{% url 'pallets:print_palets_pdf' %}" method="post">
+            {% csrf_token %}
+            {% for id in palet_ids %}
+            <input type="hidden" name="palet_ids" value="{{ id }}">
+            {% endfor %}
+            <button type="submit" class="btn btn-secondary">🖨️ Печать в PDF</button>
+        </form>
+    </div>
+</div>
 <div class="row">
     {% for palet in palets %}
     <div class="col-md-6 col-lg-4 mb-4">
@@ -40,9 +51,9 @@
                         <span class="text-break me-3">
                             {# Проверяем, есть ли у нас подсвеченное имя #}
                             {% if item.highlighted_name %}
-                                {{ item.highlighted_name|safe }}
+                            {{ item.highlighted_name|safe }}
                             {% else %}
-                                {{ item.product.product_name }}
+                            {{ item.product.product_name }}
                             {% endif %}
                         </span>
                         <span class="badge bg-primary rounded-pill">{{ item.quantity }} шт.</span>

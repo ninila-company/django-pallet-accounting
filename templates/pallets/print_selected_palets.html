@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
-    <title>Выбранные палеты</title>
+    <title>Печать паллет</title>
     <style>
-        /* Стили для форматирования PDF */
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
         }
 
         h1 {
             text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
         }
 
         table {
@@ -22,41 +32,68 @@
 
         th,
         td {
+            border: 1px solid #bdc3c7;
             padding: 10px;
-            border: 1px solid #333;
             text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #ecf0f1;
+        }
+
+        ul {
+            padding-left: 15px;
+            margin: 0;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 10px;
+            color: #7f8c8d;
         }
     </style>
 </head>
 
 <body>
-    <h1>Выбранные палеты</h1>
+    <h1>Список паллет</h1>
     <table>
         <thead>
             <tr>
-                <th>Номер палеты</th>
-                <th>Продукты</th>
-                <th>Дата поступления</th>
-                <th>Дата получения</th>
-                <th>Отметка о заказе</th>
+                <th style="width: 20%;">Номер палеты</th>
+                <th style="width: 25%;">Дата поступления</th>
+                <th>Состав</th>
             </tr>
         </thead>
         <tbody>
             {% for palet in palets %}
             <tr>
-                <td>{{ palet.number }}</td>
+                <td><strong>{{ palet.number }}</strong></td>
+                <td>{{ palet.pallets_from_the_date|date:"d.m.Y" }}</td>
                 <td>
-                    {% for product_quantity in palet.products_quantity.all %}
-                    {{ product_quantity.product.product_name }} - {{ product_quantity.quantity }} шт.<br>
-                    {% endfor %}
+                    <ul>
+                        {% for item in palet.products_quantity.all %}
+                        <li>{{ item.product.product_name }} - {{ item.quantity }} шт.</li>
+                        {% empty %}
+                        <li>Нет продуктов.</li>
+                        {% endfor %}
+                    </ul>
                 </td>
-                <td>{{ palet.pallets_from_the_date }}</td>
-                <td>{{ palet.pallet_pick_up_date|default:"-" }}</td>
-                <td>{{ palet.receipt_mark|yesno:"Да,Нет" }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <div class="footer">
+        Документ сгенерирован: {{ generation_time|date:"d.m.Y H:i" }}
+    </div>
 </body>
 
 </html>
