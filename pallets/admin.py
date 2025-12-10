@@ -14,6 +14,7 @@ class Poducts_in_palet_quantityInline(admin.TabularInline):
 
 @admin.register(Palet)
 class PaletAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = (
         "number",
         "pallets_from_the_date",
@@ -56,11 +57,13 @@ class PaletAdmin(admin.ModelAdmin):
 
 @admin.register(Poducts_in_palet)
 class Poducts_in_paletAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = ("product_name",)
 
 
 @admin.register(Poducts_in_palet_quantity)
 class Poducts_in_palet_quantityAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = ("palet", "product", "quantity")
     list_filter = ("palet", "product")
     search_fields = ("palet__number", "product__product_name")
