@@ -18,6 +18,11 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
 # Если включен режим отладки, всегда добавляем локальные хосты.
 if DEBUG:
     ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
+    # Этот параметр позволяет показывать toolbar внутри Docker
+    # на основе значения DEBUG, а не только по IP.
+    DEBUG_TOOLBAR_CONFIG = {
+        'SHOW_TOOLBAR_CALLBACK': lambda _request: DEBUG,
+    }
 
 # Добавим доверенные источники для CSRF. Укажите схему, хост и порт.
 # Например: http://ip:port
@@ -41,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
