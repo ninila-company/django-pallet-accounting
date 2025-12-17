@@ -1,18 +1,23 @@
 #!/bin/sh
 
+# Этот скрипт является точкой входа для Docker-контейнера.
+
 # Выход из скрипта при любой ошибке
 set -e
 
-# Ожидаем готовности базы данных
 echo "Waiting for postgres..."
+
+# Проверяем доступность хоста и порта базы данных.
+# netcat (nc) будет пытаться подключиться, пока не получится.
 while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
     sleep 0.1
 done
+
 echo "PostgreSQL started"
 
-echo "Applying database migrations..."
-python manage.py migrate --noinput
+echo "Running tests..."
+# Устанавливаем переменную окружения, чтобы Django знал, что мы запускаем тесты
+RUNNING_TESTS=1 python manage.py test
 
-echo "Starting Gunicorn server..."
-export PYTHONPATH=/app
-exec gunicorn --chdir /app pallet_accounting.wsgi:application --bind 0.0.0.0:8000
+echo "Tests passed. Starting server..."
+exec "$@"

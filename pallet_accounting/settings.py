@@ -1,4 +1,5 @@
 import os
+import socket
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -15,20 +16,14 @@ DEBUG = int(os.getenv("DEBUG", default=0))
 # Получаем хосты из переменной окружения. Если она пустая, будет пустой список.
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
 
-# Если включен режим отладки, всегда добавляем локальные хосты.
-if DEBUG:
-    ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
-    # Этот параметр позволяет показывать toolbar внутри Docker
-    # на основе значения DEBUG, а не только по IP.
-    DEBUG_TOOLBAR_CONFIG = {
-        'SHOW_TOOLBAR_CALLBACK': lambda _request: DEBUG,
-    }
-
 # Добавим доверенные источники для CSRF. Укажите схему, хост и порт.
 # Например: http://ip:port
 CSRF_TRUSTED_ORIGINS = os.getenv(
     "DJANGO_CSRF_TRUSTED_ORIGINS", "http://127.0.0.1, http://localhost"
 ).split(",")
+
+# Определяем, запущены ли тесты, по переменной окружения из entrypoint-dev.sh
+IS_RUNNING_TESTS = os.getenv("RUNNING_TESTS") == "1"
 
 # Application definition
 
@@ -40,13 +35,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # my-apps
-    "debug_toolbar",
     "pallets.apps.PalletsConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -54,6 +47,22 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Если включен режим отладки и мы не запускаем тесты, подключаем debug_toolbar
+if DEBUG and not IS_RUNNING_TESTS:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
+    ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
+
+    # Этот параметр позволяет показывать toolbar внутри Docker
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda _request: DEBUG,
+    }
+
+    # Для работы debug_toolbar в Docker нужно определить INTERNAL_IPS
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1"]
 
 ROOT_URLCONF = "pallet_accounting.urls"
 

@@ -42,3 +42,6 @@ RUN SECRET_KEY="dummy-key-for-build" \
 
 # 8. Запуск приложения через entrypoint скрипт
 ENTRYPOINT ["/entrypoint.sh"]
+
+# Команда, которая будет выполнена, если entrypoint завершится успешно
+CMD ["gunicorn", "pallet_accounting.wsgi:application", "--bind", "0.0.0.0:8000"]
