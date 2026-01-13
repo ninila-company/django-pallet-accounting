@@ -2,7 +2,8 @@ import os
 import time
 
 import requests
-from django.contrib import messages, postgres
+from django.contrib import messages
+from django.contrib.postgres import search
 
 # from django.db.models import Q
 from django.db.models import Prefetch
@@ -31,13 +32,13 @@ def palet_list(request):
         # Используем полнотекстовый поиск.
         # search_type='phrase' ищет точную фразу, решая проблему "белый" vs "супербелый".
         # config='russian' указывает, что мы ищем на русском языке.
-        query = postgres.search.SearchQuery(search_query, search_type="phrase", config="russian")
+        query = search.SearchQuery(search_query, search_type="phrase", config="russian")
 
         # Фильтруем палеты, как и раньше
         palets_qs = palets_qs.filter(products_quantity__product__search_vector=query)
 
         # Создаем аннотацию для подсветки
-        headline = postgres.search.SearchHeadline(
+        headline = search.SearchHeadline(
             "product__product_name",  # Поле, которое нужно подсветить
             query,
             start_sel="<mark>",  # Начальный тег для подсветки
@@ -140,9 +141,13 @@ def print_palets_pdf(request):
 
             pdf_file = HTML(string=html_string).write_pdf()
 
-            response = HttpResponse(pdf_file, content_type="application/pdf")
-            response["Content-Disposition"] = 'attachment; filename="pallets.pdf"'
-            return response
+            if pdf_file:
+                response = HttpResponse(pdf_file, content_type="application/pdf")
+                response["Content-Disposition"] = 'attachment; filename="pallets.pdf"'
+                return response
+            else:
+                messages.error(request, "Ошибка при генерации PDF: файл не был создан.")
+                return HttpResponseRedirect(reverse("pallets:palet_list"))
         except Exception as e:
             messages.error(request, f"Ошибка при генерации PDF: {str(e)}")
 

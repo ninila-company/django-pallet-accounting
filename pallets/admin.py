@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -31,7 +31,8 @@ class PaletAdmin(admin.ModelAdmin):
         # Оптимизация: предварительно загружаем связанные продукты, чтобы избежать N+1 запросов
         queryset = super().get_queryset(request)
         return queryset.prefetch_related("products_quantity__product")
-
+    
+    @admin.action(description="Печать выбранных палет")
     def print_selected_palets(self, request, queryset):
         try:
             palets = queryset  # Благодаря get_queryset, здесь уже будут предзагружены продукты
@@ -45,14 +46,20 @@ class PaletAdmin(admin.ModelAdmin):
 
             pdf_file = HTML(string=html_string).write_pdf()
 
-            response = HttpResponse(pdf_file, content_type="application/pdf")
-            response["Content-Disposition"] = 'attachment; filename="selected_palets.pdf"'
-            return response
+            if pdf_file:
+                response = HttpResponse(pdf_file, content_type="application/pdf")
+                response["Content-Disposition"] = 'attachment; filename="selected_palets.pdf"'
+                return response
+            else:
+                self.message_user(
+                    request,
+                    "Ошибка при генерации PDF: файл не был создан.",
+                    level=messages.ERROR,
+                )
+                return
         except Exception as e:
-            self.message_user(request, f"Ошибка при генерации PDF: {str(e)}", level="error")
+            self.message_user(request, f"Ошибка при генерации PDF: {str(e)}", level=messages.ERROR)
             return
-
-    print_selected_palets.short_description = "Печать выбранных паллет"
 
 
 @admin.register(Poducts_in_palet)

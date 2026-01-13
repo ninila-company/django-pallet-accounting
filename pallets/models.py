@@ -10,6 +10,7 @@ class Poducts_in_palet(models.Model):
     product_name = models.CharField(max_length=255, verbose_name="Товар")
     # Поле для полнотекстового поиска. null=True, чтобы можно было добавить в существующую таблицу.
     search_vector = SearchVectorField(null=True, editable=False)
+    objects = models.Manager()
 
     def __str__(self):
         return str(self.product_name)
@@ -28,6 +29,7 @@ class Palet(models.Model):
     pallets_from_the_date = models.DateField(verbose_name="Дата поступления")
     pallet_pick_up_date = models.DateField(blank=True, null=True, verbose_name="Дата получения")
     receipt_mark = models.BooleanField(verbose_name="Отметка о заказе")
+    objects = models.Manager()
     products_quantity: Manager
 
     def __str__(self):
@@ -50,16 +52,13 @@ class Palet(models.Model):
 class Poducts_in_palet_quantity(models.Model):
     palet = models.ForeignKey(
         Palet,
-        on_delete=models.CASCADE, 
+        on_delete=models.CASCADE,
         related_name="products_quantity",
         verbose_name="Палета",
     )
-    product = models.ForeignKey(
-        Poducts_in_palet,
-        on_delete=models.CASCADE,
-        verbose_name="Продукт"
-    )
+    product = models.ForeignKey(Poducts_in_palet, on_delete=models.CASCADE, verbose_name="Продукт")
     quantity = models.PositiveIntegerField(default=1, verbose_name="Количество")  # type: ignore
+    objects = models.Manager()
 
     def __str__(self):
         return f"{self.product.product_name} - {self.quantity} шт."  # type: ignore
