@@ -69,14 +69,15 @@ def palet_list(request):
 def send_palet(request, palet_id):
     if request.method == "POST":
         try:
-            palet = get_object_or_404(Palet, id=palet_id)
+            palet = get_object_or_404(
+                Palet.objects.prefetch_related("products_quantity__product"),
+                id=palet_id,
+            )
 
-            # Получаем список продуктов в паллете с количеством
-            products_list = []
-            for product_quantity in palet.products_quantity.all():
-                products_list.append(
-                    f"{product_quantity.product.product_name} - {product_quantity.quantity} шт."
-                )
+            products_list = [
+                f"{pq.product.product_name} - {pq.quantity} шт."
+                for pq in palet.products_quantity.all()
+            ]
             # Формируем HTML-версию с правильными тегами
             products_html = "<br>".join(products_list)
 

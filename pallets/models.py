@@ -38,6 +38,11 @@ class Palet(models.Model):
     class Meta:
         verbose_name = "Палета"
         verbose_name_plural = "Палеты"
+        indexes = [
+            models.Index(fields=["receipt_mark", "number"]),
+            models.Index(fields=["pallets_from_the_date"]),
+            models.Index(fields=["pallet_pick_up_date"]),
+        ]
 
     @admin.display(description="Продукты")
     def get_products_list(self):
@@ -66,3 +71,6 @@ class Poducts_in_palet_quantity(models.Model):
     class Meta:
         verbose_name = "Продукт в палете с количеством"
         verbose_name_plural = "Продукты в палете с количеством"
+        indexes = [
+            models.Index(fields=["palet", "product"]),
+        ]
