@@ -20,26 +20,31 @@
 
 {% if palets %}
 <div class="row mb-3">
-    <div class="col-12">
-        <form action="{% url 'pallets:print_palets_pdf' %}" method="post">
+    <div class="col-12 d-flex gap-2">
+        <form action="{% url 'pallets:print_palets_pdf' %}" method="post" id="printForm">
             {% csrf_token %}
-            {% for id in palet_ids %}
-            <input type="hidden" name="palet_ids" value="{{ id }}">
-            {% endfor %}
-            <button type="submit" class="btn btn-secondary">🖨️ Печать в PDF</button>
+            <button type="submit" class="btn btn-secondary" id="printBtn" disabled>🖨️ Печать в PDF</button>
+            <span class="text-muted" id="selectedCount">Выбрано: 0</span>
         </form>
     </div>
+</div>
+<div class="form-check mb-3">
+    <input type="checkbox" class="form-check-input" id="selectAll">
+    <label class="form-check-label" for="selectAll">Выбрать все</label>
 </div>
 <div class="row">
     {% for palet in palets %}
     <div class="col-md-6 col-lg-4 mb-4">
         <div class="card h-100 bg-body-secondary">
-            <div class="card-header">
-                <strong>
-                    <a href="{% url 'admin:pallets_palet_change' palet.id %}" class="text-decoration-none text-reset">
-                        Палета № {{ palet.number }}
-                    </a>
-                </strong>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <input type="checkbox" class="form-check-input palet-checkbox" name="palet_ids" value="{{ palet.id }}" id="palet_{{ palet.id }}">
+                    <strong>
+                        <a href="{% url 'admin:pallets_palet_change' palet.id %}" class="text-decoration-none text-reset">
+                            Палета № {{ palet.number }}
+                        </a>
+                    </strong>
+                </div>
             </div>
             <div class="card-body d-flex flex-column">
                 <h6 class="card-subtitle mb-2 text-muted">Дата поступления:
@@ -81,4 +86,79 @@
     Нет паллетов, соответствующих вашему запросу, или все паллеты отгружены.
 </div>
 {% endif %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.palet-checkbox');
+    const printBtn = document.getElementById('printBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    const printForm = document.getElementById('printForm');
+
+    function updateButtonState() {
+        const checkedCount = document.querySelectorAll('.palet-checkbox:checked').length;
+        printBtn.disabled = checkedCount === 0;
+        selectedCount.textContent = 'Выбрано: ' + checkedCount;
+    }
+
+    printForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const checkedBoxes = document.querySelectorAll('.palet-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            alert('Выберите хотя бы одну паллету для печати.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', printForm.querySelector('[name=csrfmiddlewaretoken]').value);
+        checkedBoxes.forEach(cb => {
+            formData.append('palet_ids', cb.value);
+        });
+
+        fetch(printForm.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('PDF generation failed');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pallets.pdf';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            alert('PDF успешно создан и скачан!');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при генерации PDF.');
+        });
+    });
+
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        updateButtonState();
+    });
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            const someChecked = Array.from(checkboxes).some(c => c.checked);
+            selectAll.checked = allChecked;
+            selectAll.indeterminate = someChecked && !allChecked;
+            updateButtonState();
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

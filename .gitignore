@@ -20,3 +20,11 @@ postgres_data/
 
 # Django static files
 staticfiles/
+
+# opencode agent
+AGENTS.md
+opencode.jsonc
+.opencode/
+
+# TestSprite
+testsprite_tests/
